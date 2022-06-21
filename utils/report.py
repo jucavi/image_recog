@@ -80,8 +80,8 @@ CONTENT_FORMAT = {
     }
 }
 
-class Report:
-    def __init__(self, path, reverse=True, resize=None, content_format=CONTENT_FORMAT):
+class ReportImageParser:
+    def __init__(self, path, reverse=True, resize=(1250, 1810), content_format=CONTENT_FORMAT):
         """
         Args:
             path (str): Image path
@@ -89,18 +89,20 @@ class Report:
             resize (tuple, optional): (width, height). Defaults to None.
         """
 
-        try:
-            self.width, self.height = resize
-        except:
-            self.width, self.height = self.img.shape[:2]
-
+        self.width, self.height = resize # (1250, 1810)
         self.img = self.__cleanup(path, reverse)
         self.content_format = content_format
 
 
     def __cleanup(self, path, reverse):
+        """Clean image for further processing"""
+
         img = cv2.imread(path)
-        # img = cv2.resize(img, (1250, 1810))
+
+        width, height = img.shape[:2]
+        self.width = self.width or width
+        self.height = self.height or height
+
         img = cv2.resize(img, (self.width, self.height))
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         thresh, img = cv2.threshold(img, 180, 255, cv2.THRESH_BINARY)
@@ -176,11 +178,4 @@ class Report:
                     custom_config = r'--oem 3 --psm 6'
                     details = pytesseract.image_to_data(col, output_type=pytesseract.Output.DICT, config=custom_config, lang='eng')
                     setattr(self, attr, details['text'][-1].replace('$', ''))
-
-
-
-if __name__ == '__main__':
-    r = Report('images/image4.png', resize=(1250, 1810))
-    r.parse_image()
-    for i in r.__dict__:
-        print(i, '=', getattr(r, i))
+        return self
