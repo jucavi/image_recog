@@ -81,7 +81,7 @@ CONTENT_FORMAT = {
 }
 
 class ReportImageParser:
-    def __init__(self, path, reverse=True, resize=(1250, 1810), content_format=CONTENT_FORMAT):
+    def __init__(self, path, reverse=True, content_format=CONTENT_FORMAT):
         """
         Args:
             path (str): Image path
@@ -89,7 +89,7 @@ class ReportImageParser:
             resize (tuple, optional): (width, height). Defaults to None.
         """
 
-        self.width, self.height = resize # (1250, 1810)
+        self.width, self.height = (1250, 1810)
         self.img = self.__cleanup(path, reverse)
         self.content_format = content_format
 
@@ -99,14 +99,10 @@ class ReportImageParser:
 
         img = cv2.imread(path)
 
-        width, height = img.shape[:2]
-        self.width = self.width or width
-        self.height = self.height or height
-
         img = cv2.resize(img, (self.width, self.height))
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        thresh, img = cv2.threshold(img, 180, 255, cv2.THRESH_BINARY)
-        img = cv2.threshold(img, 10, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+        _, img = cv2.threshold(img, 180, 255, cv2.THRESH_BINARY)
+        _, img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
         if reverse:
             img = 255 - img
 
